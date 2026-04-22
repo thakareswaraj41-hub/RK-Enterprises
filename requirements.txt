@@ -1,0 +1,6 @@
+flask
+pymongo
+certifi
+gunicorn
+dnspython
+werkzeug

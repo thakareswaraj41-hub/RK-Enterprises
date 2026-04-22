@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Quotation | RK ERP</title>
+    <style>
+        body { font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; background-color: #FAF9F6; }
+        .sidebar { background-color: #E8D7C5; }
+        .accent-text { color: #5D574F; }
+        .sharp-border { border-radius: 0 !important; border-collapse: collapse; }
+        
+        input, textarea { 
+            border: 1px solid transparent; 
+            width: 100%; 
+            outline: none; 
+            background: transparent; 
+            transition: all 0.2s ease;
+        }
+        input:hover, textarea:hover { background-color: #fffdfa; border-bottom: 1px solid #D2B48C; }
+        input:focus, textarea:focus { background-color: white; border-bottom: 1px solid #5D574F; }
+        
+        textarea.auto-expand {
+            resize: none;
+            overflow: hidden;
+            min-height: 1.2em;
+            display: block;
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* PDF Printing Logic */
+        .print-view-content { display: none; }
+
+        @media print {
+            html, body { overflow: visible !important; height: auto !important; }
+            .no-print { display: none !important; }
+            body { background-color: white !important; }
+            .main-content { overflow: visible !important; display: block !important; width: 100% !important; padding: 0 !important; margin: 0 !important;}
+            .print-sheet { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; padding: 10mm !important; }
+
+            textarea, input { display: none !important; }
+            .print-view-content { 
+                display: block !important; 
+                white-space: pre-wrap !important; 
+                word-wrap: break-word;
+                font-size: inherit;
+                line-height: 1.4;
+            }
+            
+            @page { size: A4; margin: 1cm; }
+            .item-row { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 sidebar border-r border-[#D2B48C] flex flex-col no-print flex-shrink-0">
+        <div class="p-6 border-b border-[#D2B48C]">
+            <h1 class="text-xl font-bold accent-text tracking-tight">RK ENTERPRISES</h1>
+            <p class="text-xs text-[#8C8273] uppercase tracking-widest">WaterProofing ERP</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 text-[#5D574F]">
+            <a href="{{ url_for('dashboard') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Dashboard</a>
+            <a href="{{ url_for('project') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Project</a>
+            <a href="{{ url_for('workorder') }}"class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]" >Work Order</a>
+            <a href="{{ url_for('bom') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">BOM</a>
+            <a href="{{ url_for('billing') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Billing</a>
+            <a href="{{ url_for('inventory') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Store Inventory</a>
+            <a href="{{ url_for('purchase') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Purchase</a>
+            <a href="{{ url_for('dispatch') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Dispatch</a>
+            <a href="{{ url_for('quotation') }}" class="block p-3 rounded bg-white shadow-sm font-semibold accent-text">Quotation</a>
+        </nav>
+        <div class="p-4 border-t border-[#D2B48C]">
+            <a href="/logout" class="text-sm text-red-700 font-semibold hover:underline">Logout</a>
+        </div>
+        <p class="p-4 border-t border-[#D2B48C]">Design & Developed by Swaraj T.</p>
+    </aside>
+
+    <main class="flex-1 p-6 overflow-y-auto main-content">
+        <div class="flex justify-between items-center mb-6 no-print max-w-[900px] mx-auto">
+            <h2 class="text-3xl font-bold accent-text">New Quotation</h2>
+            <button type="button" onclick="prepareAndPrint()" class="bg-[#5D574F] text-white px-10 py-2 font-bold hover:bg-black transition sharp-border uppercase text-xs tracking-widest flex items-center gap-2">
+                🖨️ Export PDF
+            </button>
+        </div>
+
+        <div class="bg-white p-10 border border-[#E8D7C5] sharp-border shadow-sm mx-auto print-sheet" style="max-width: 900px; min-height: 297mm;">
+            
+            <div class="flex justify-between border-b-2 border-[#5D574F] pb-6 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold accent-text">RK ENTERPRISES</h1>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest block">Quality WaterProofing Services</p>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <h2 class="text-xl font-bold accent-text uppercase">Quotation</h2>
+                    <div class="mt-2 text-sm">
+                        <div class="flex justify-end gap-2">
+                            <span class="text-[10px] font-bold text-gray-400">NO:</span>
+                            <div class="min-w-[100px]">
+                                <input type="text" id="qt_number" class="text-right font-mono font-bold accent-text">
+                                <div class="print-view-content font-bold accent-text"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <span class="text-[10px] font-bold text-gray-400">DATE:</span>
+                            <div class="min-w-[100px]">
+                                <input type="text" value="21-04-2026" class="text-right font-mono">
+                                <div class="print-view-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-10 mb-8">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Quotation For:</p>
+                    <div>
+                        <input type="text" placeholder="Customer Name" class="font-bold text-lg accent-text">
+                        <div class="print-view-content font-bold text-lg accent-text"></div>
+                    </div>
+                    <div>
+                        <textarea placeholder="Site Address / GSTIN" class="text-sm text-gray-600 auto-expand" oninput="autoExpand(this)"></textarea>
+                        <div class="print-view-content text-sm text-gray-600"></div>
+                    </div>
+                </div>
+                <div class="text-right text-xs text-gray-500">
+                    <p class="font-bold accent-text text-sm mb-1">FROM:</p>
+                    <p>Sr. No 44, Near Sai Mandir, Pune - 411041</p>
+                    <p>Maharashtra, India</p>
+                    <p class="font-bold mt-1 accent-text">GSTIN: 27RKENT9922Z1Z0</p>
+                </div>
+            </div>
+
+            <table class="w-full border-collapse border border-[#D2B48C] mb-4">
+                <thead>
+                    <tr class="bg-[#F4EBE1] text-[#5D574F] text-[10px] uppercase font-bold">
+                        <th class="border border-[#D2B48C] p-2 w-10">Sr.</th>
+                        <th class="border border-[#D2B48C] p-2 text-left">Description of Services</th>
+                        <th class="border border-[#D2B48C] p-2 w-16 text-center">Qty</th>
+                        <th class="border border-[#D2B48C] p-2 w-16 text-center">Unit</th>
+                        <th class="border border-[#D2B48C] p-2 w-28 text-right">Rate</th>
+                        <th class="border border-[#D2B48C] p-2 w-32 text-right">Amount</th>
+                        <th class="border border-[#D2B48C] p-2 w-10 no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="item-rows">
+                    <tr class="item-row">
+                        <td class="border border-[#D2B48C] p-2 text-center text-xs font-mono">1</td>
+                        <td class="border border-[#D2B48C] p-2">
+                            <div class="mb-1">
+                                <input type="text" placeholder="Material Name" class="font-bold text-sm accent-text">
+                                <div class="print-view-content font-bold text-sm accent-text"></div>
+                            </div>
+                            <div>
+                                <textarea placeholder="Specifications..." class="text-[10px] italic text-gray-400 auto-expand" oninput="autoExpand(this)"></textarea>
+                                <div class="print-view-content text-[10px] italic text-gray-500"></div>
+                            </div>
+                        </td>
+                        <td class="border border-[#D2B48C] p-2"><input type="number" value="0" class="qty-input text-center text-sm font-mono"><div class="print-view-content text-center text-sm font-mono"></div></td>
+                        <td class="border border-[#D2B48C] p-2"><input type="text" placeholder="Sqft" class="text-center text-[10px] uppercase"><div class="print-view-content text-center text-[10px] uppercase"></div></td>
+                        <td class="border border-[#D2B48C] p-2"><input type="number" value="0" class="rate-input text-right text-sm font-mono"><div class="print-view-content text-right text-sm font-mono"></div></td>
+                        <td class="border border-[#D2B48C] p-2 text-right font-bold text-sm font-mono accent-text amount-display">0.00</td>
+                        <td class="border border-[#D2B48C] p-2 text-center no-print"><button type="button" onclick="removeRow(this)" class="text-red-300 hover:text-red-600">✕</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" onclick="addRow()" class="no-print mb-8 bg-white border border-[#D2B48C] text-[#5D574F] px-4 py-1 text-[10px] font-bold uppercase hover:bg-gray-50 sharp-border transition">
+                + Add Item Row
+            </button>
+
+            <div class="flex justify-end mb-10">
+                <div class="w-64 space-y-1">
+                    <div class="flex justify-between text-xs text-gray-500 px-1"><span>Subtotal:</span><span id="subtotal" class="font-mono">₹ 0.00</span></div>
+                    <div class="flex justify-between text-xs text-gray-400 italic px-1"><span>GST (18%):</span><span id="gst-total" class="font-mono">₹ 0.00</span></div>
+                    <div class="flex justify-between text-lg font-bold accent-text border-t-2 border-[#5D574F] pt-2 px-1"><span>Total:</span><span id="grand-total" class="font-mono">₹ 0.00</span></div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h4 class="text-[10px] font-bold accent-text uppercase underline mb-2">Terms & Conditions:</h4>
+                <div class="relative mb-8">
+                    <textarea class="text-[10px] leading-relaxed text-gray-500 auto-expand" oninput="autoExpand(this)" placeholder="Enter terms..."></textarea>
+                    <div class="print-view-content text-[10px] leading-relaxed text-gray-600"></div>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="text-sm font-bold italic accent-text">Best Regards,</p>
+                    <p class="text-xl font-black accent-text uppercase">RK Enterprises</p>
+                    <div class="h-16"></div> <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-2 border-t border-gray-100 inline-block">Authorized Signatory</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function autoExpand(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function prepareAndPrint() {
+            // Transfer all input/textarea data to printable divs
+            document.querySelectorAll('input, textarea').forEach(el => {
+                const parent = el.parentElement;
+                if (parent) {
+                    const printDiv = parent.querySelector('.print-view-content');
+                    if (printDiv) {
+                        printDiv.innerText = el.value;
+                    }
+                }
+            });
+            setTimeout(() => { window.print(); }, 200);
+        }
+
+        function addRow() {
+            const container = document.getElementById('item-rows');
+            const rowCount = container.children.length + 1;
+            const newRow = document.createElement('tr');
+            newRow.className = "item-row";
+            newRow.innerHTML = `
+                <td class="border border-[#D2B48C] p-2 text-center text-xs font-mono">${rowCount}</td>
+                <td class="border border-[#D2B48C] p-2">
+                    <div class="mb-1">
+                        <input type="text" placeholder="Material Name" class="font-bold text-sm accent-text">
+                        <div class="print-view-content font-bold text-sm accent-text"></div>
+                    </div>
+                    <div>
+                        <textarea placeholder="Details..." class="text-[10px] italic text-gray-400 auto-expand" oninput="autoExpand(this)"></textarea>
+                        <div class="print-view-content text-[10px] italic text-gray-500"></div>
+                    </div>
+                </td>
+                <td class="border border-[#D2B48C] p-2"><input type="number" value="0" class="qty-input text-center text-sm font-mono"><div class="print-view-content text-center text-sm font-mono"></div></td>
+                <td class="border border-[#D2B48C] p-2"><input type="text" placeholder="Unit" class="text-center text-[10px] uppercase"><div class="print-view-content text-center text-[10px] uppercase"></div></td>
+                <td class="border border-[#D2B48C] p-2"><input type="number" value="0" class="rate-input text-right text-sm font-mono"><div class="print-view-content text-right text-sm font-mono"></div></td>
+                <td class="border border-[#D2B48C] p-2 text-right font-bold text-sm font-mono accent-text amount-display">0.00</td>
+                <td class="border border-[#D2B48C] p-2 text-center no-print"><button type="button" onclick="removeRow(this)" class="text-red-300 hover:text-red-600">✕</button></td>`;
+            container.appendChild(newRow);
+            attachEvents();
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            calculate();
+            updateNumbers();
+        }
+
+        function updateNumbers() {
+            document.querySelectorAll('.item-row').forEach((row, index) => {
+                row.cells[0].innerText = index + 1;
+            });
+        }
+
+        function calculate() {
+            let subtotal = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
+                const amount = qty * rate;
+                row.querySelector('.amount-display').innerText = amount.toFixed(2);
+                subtotal += amount;
+            });
+            const gst = subtotal * 0.18;
+            const grand = subtotal + gst;
+            document.getElementById('subtotal').innerText = "₹ " + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('gst-total').innerText = "₹ " + gst.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('grand-total').innerText = "₹ " + grand.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        }
+
+        function attachEvents() {
+            document.querySelectorAll('.qty-input, .rate-input').forEach(input => {
+                input.oninput = calculate;
+            });
+        }
+
+        window.onload = function() {
+            const year = new Date().getFullYear();
+            document.getElementById('qt_number').value = "RK/" + year + "/001";
+            attachEvents();
+        };
+    </script>
+</body>
+</html>

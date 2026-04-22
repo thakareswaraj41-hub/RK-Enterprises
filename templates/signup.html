@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Signup | RK ERP</title>
+    <style>
+        body { 
+            font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; 
+            background-color: #F5F5DC; 
+        }
+        .skin-accent { background-color: #E8D7C5; }
+        .skin-dark { background-color: #D2B48C; } 
+        .input-focus:focus { border-color: #A39171; outline: none; }
+        .hidden-step { display: none; }
+    </style>
+</head>
+<body class="flex h-screen text-gray-800">
+    <div class="hidden lg:flex w-1/2 skin-accent items-center justify-center border-r border-[#D2B48C]">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold tracking-tight text-[#5D574F]">RK ENTERPRISES</h1>
+            <p class="text-[#8C8273] mt-2 tracking-widest text-sm uppercase">Engineering Excellence</p>
+        </div>
+    </div>
+    
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-10 bg-white">
+        <div class="w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-2 text-[#5D574F]">Create Account</h2>
+            <p class="text-gray-500 mb-8" id="step-desc">Enter your credentials to begin</p>
+
+            <div id="setup-step" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" 
+                        class="w-full p-3 rounded bg-[#FAF9F6] border border-[#E8D7C5] input-focus transition shadow-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" 
+                        class="w-full p-3 rounded bg-[#FAF9F6] border border-[#E8D7C5] input-focus transition shadow-sm">
+                </div>
+                
+                <button onclick="requestOTP()" class="w-full skin-dark text-white py-3 rounded font-bold hover:opacity-90 transition shadow-md">
+                    Send Verification Code
+                </button>
+            </div>
+
+            <div id="otp-step" class="hidden-step space-y-5">
+                <div class="p-3 bg-blue-50 border border-blue-200 rounded text-center">
+                    <p id="otp-message" class="text-blue-700 text-xs font-bold uppercase tracking-wide">
+                        Check your administrator email for the code
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Enter OTP</label>
+                    <input type="text" id="otp_code" placeholder="000000" 
+                        class="w-full p-3 rounded bg-[#FAF9F6] border-2 border-[#D2B48C] text-center text-2xl tracking-[0.5em] font-black outline-none">
+                </div>
+                
+                <button onclick="verifyAndSignup()" class="w-full bg-[#5D574F] text-white py-3 rounded font-bold hover:bg-black transition shadow-md">
+                    Verify & Create Account
+                </button>
+                <button onclick="location.reload()" class="w-full text-xs text-gray-400 hover:underline text-center">Back to Details</button>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-100 text-sm text-gray-500 text-center">
+                <a href="/login" class="hover:text-[#A39171] font-semibold uppercase">Already have an account? Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pendingUser = { username: "", password: "" };
+
+        function requestOTP() {
+            const userVal = document.getElementById('username').value;
+            const passVal = document.getElementById('password').value;
+
+            if(!userVal || !passVal) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            pendingUser.username = userVal;
+            pendingUser.password = passVal;
+
+            const btn = event.target;
+            btn.innerText = "Sending...";
+            btn.disabled = true;
+
+            fetch('/send_otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: userVal }) // Email is handled by backend
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    document.getElementById('setup-step').classList.add('hidden-step');
+                    document.getElementById('otp-step').classList.remove('hidden-step');
+                    document.getElementById('step-desc').innerText = "Security Verification";
+                } else {
+                    alert("Error: " + data.msg);
+                    btn.innerText = "Send Verification Code";
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                alert("Connection error.");
+                btn.innerText = "Send Verification Code";
+                btn.disabled = false;
+            });
+        }
+
+        function verifyAndSignup() {
+            const code = document.getElementById('otp_code').value;
+
+            fetch('/verify_otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ otp: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const formData = new FormData();
+                    formData.append('username', pendingUser.username);
+                    formData.append('password', pendingUser.password);
+
+                    fetch('/signup', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(resData => {
+                        if(resData.success) {
+                            window.location.href = resData.redirect;
+                        } else {
+                            alert(resData.message);
+                        }
+                    });
+                } else {
+                    alert("Invalid OTP code. Please try again.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>

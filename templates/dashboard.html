@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard | RK ERP</title>
+    <style>
+        body { 
+            font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; 
+            background-color: #FAF9F6; 
+        }
+        .sidebar { background-color: #E8D7C5; }
+        .stat-card { background-color: white; border: 1px solid #E8D7C5; }
+        .accent-text { color: #5D574F; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 sidebar border-r border-[#D2B48C] flex flex-col">
+        <div class="p-6 border-b border-[#D2B48C]">
+            <h1 class="text-xl font-bold accent-text tracking-tight">RK ENTERPRISES</h1>
+            <p class="text-xs text-[#8C8273] uppercase tracking-widest">WaterProofing ERP</p>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" class="block p-3 rounded bg-white shadow-sm font-semibold accent-text">Dashboard</a>
+            <a href="{{ url_for('project') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Project</a>
+            <a href="{{ url_for('workorder') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Work Order</a>
+            <a href="{{ url_for('bom') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">BOM</a>
+            <a href="{{ url_for('billing') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Billing</a>
+            <a href="{{ url_for('inventory') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Store Inventory</a>
+            <a href="{{ url_for('purchase') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Purchase</a>
+            <a href="{{ url_for('dispatch') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Dispatch</a>
+            <a href="{{ url_for('quotation') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Quotation</a>
+            
+        </nav>
+
+        <div class="p-4 border-t border-[#D2B48C]">
+            <a href="/login" class="text-sm text-red-700 font-semibold hover:underline">Logout</a>
+        </div>
+        <p class="p-4 border-t border-[#D2B48C]">Design & Developed by Swaraj T.</p>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <header class="bg-white p-6 border-b border-[#E8D7C5] flex justify-between items-center">
+            <h2 class="text-2xl font-bold accent-text">Main Overview</h2>
+            <div class="flex items-center space-y-0 space-x-4">
+                <span class="text-sm text-gray-500">Welcome, <strong>Admin</strong></span>
+                <div class="w-10 h-10 rounded-full bg-[#D2B48C] flex items-center justify-center text-white font-bold">RK</div>
+            </div>
+        </header>
+
+        <div class="p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card p-6 rounded-xl shadow-sm">
+                    <p class="text-sm text-gray-500 uppercase font-semibold">Pending Orders</p>
+                    <h3 class="text-3xl font-bold accent-text">12</h3>
+                </div>
+                <div class="stat-card p-6 rounded-xl shadow-sm">
+                    <p class="text-sm text-gray-500 uppercase font-semibold">Active Projects</p>
+                    <h3 class="text-3xl font-bold accent-text">08</h3>
+                </div>
+                <div class="stat-card p-6 rounded-xl shadow-sm">
+                    <p class="text-sm text-gray-500 uppercase font-semibold">Inventory Alert</p>
+                    <h3 class="text-3xl font-bold text-red-600">03</h3>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-[#E8D7C5]">
+                <div class="p-6 border-b border-[#E8D7C5]">
+                    <h3 class="font-bold accent-text">Recent Project Status</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#FAF9F6]">
+                                <th class="p-4 text-sm font-semibold text-gray-600">Client Name</th>
+                                <th class="p-4 text-sm font-semibold text-gray-600">Panel Type</th>
+                                <th class="p-4 text-sm font-semibold text-gray-600">Status</th>
+                                <th class="p-4 text-sm font-semibold text-gray-600">Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#E8D7C5]">
+                            <tr>
+                                <td class="p-4 text-sm">Industrial Solutions</td>
+                                <td class="p-4 text-sm">APFC Panel</td>
+                                <td class="p-4"><span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">In Progress</span></td>
+                                <td class="p-4 text-sm">25 April 2026</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm">City Power Grid</td>
+                                <td class="p-4 text-sm">MCC Panel</td>
+                                <td class="p-4"><span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Completed</span></td>
+                                <td class="p-4 text-sm">18 April 2026</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

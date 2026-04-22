@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Reset | RK ERP</title>
+    <style>
+        body { font-family: 'Calibri', sans-serif; background-color: #F5F5DC; }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen">
+    <div class="bg-white p-10 rounded-xl shadow-lg w-full max-w-md border border-[#E8D7C5]">
+        <h2 class="text-2xl font-bold mb-6 text-[#5D574F]">Reset Password</h2>
+        <form action="/forgot" method="POST" class="space-y-4">
+            <input type="text" name="username" placeholder="Your Username" class="w-full p-3 rounded border border-[#E8D7C5] bg-[#FAF9F6] outline-none" required>
+            <input type="password" name="new_password" placeholder="New Password" class="w-full p-3 rounded border border-[#E8D7C5] bg-[#FAF9F6] outline-none" required>
+            <button class="w-full bg-[#5D574F] text-white py-3 rounded font-bold shadow-md">Update Credentials</button>
+        </form>
+        <p class="mt-4 text-center"><a href="/login" class="text-gray-500 text-sm hover:underline">Cancel</a></p>
+    </div>
+</body>
+</html>

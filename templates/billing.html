@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>RA Billing | RK ERP</title>
+    <style>
+        body { font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; background-color: #FAF9F6; }
+        .sidebar { background-color: #E8D7C5; }
+        .accent-text { color: #5D574F; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .hidden { display: none; }
+
+        @media print {
+        .no-print { display: none !important; }
+        body { background-color: white; }
+        main { padding: 0; width: 100%; }
+        
+        /* Force background colors to print so white text is visible on dark headers */
+        .bg-blue-50, .bg-gray-50, .bg-gray-100, .bg-[#5D574F], .bg-[#6e675e] { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+        }
+
+        table { border: 1px solid black !important; width: 100%; }
+        th, td { border: 1px solid black !important; padding: 4px !important; }
+        
+        /* This ensures the material description stays white in the PDF */
+        .pdf-white-text { color: white !important; }
+
+        input { border: none !important; background: transparent !important; color: black !important; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 sidebar border-r border-[#D2B48C] flex flex-col no-print">
+        <div class="p-6 border-b border-[#D2B48C]">
+            <h1 class="text-xl font-bold accent-text tracking-tight">RK ENTERPRISES</h1>
+            <p class="text-xs text-[#8C8273] uppercase tracking-widest">WaterProofing ERP</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="{{ url_for('dashboard') }}" class="block p-3 rounded hover:bg-[#D2B48C]">Dashboard</a>
+            <a href="{{ url_for('project') }}" class="block p-3 rounded hover:bg-[#D2B48C]">Project</a>
+            <a href="{{ url_for('workorder') }}" class="block p-3 rounded hover:bg-[#D2B48C]">Work Order</a>
+            <a href="{{ url_for('bom') }}" class="block p-3 rounded hover:bg-[#D2B48C]">BOM</a>
+            <a href="{{ url_for('billing') }}" class="block p-3 rounded bg-white shadow-sm font-semibold accent-text">Billing</a>
+            <a href="{{ url_for('inventory') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Store Inventory</a>
+            <a href="{{ url_for('purchase') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Purchase</a>
+            <a href="{{ url_for('dispatch') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Dispatch</a>
+            <a href="{{ url_for('quotation') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Quotation</a>
+        </nav>
+        <div class="p-4 border-t border-[#D2B48C]">
+            <a href="/logout" class="text-sm text-red-700 font-semibold hover:underline">Logout</a>
+        </div>
+        <p class="p-4 border-t border-[#D2B48C]">Design & Developed by Swaraj T.</p>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h2 class="text-3xl font-bold accent-text">Running Account (RA) Bill</h2>
+                <p class="text-sm text-gray-500">Project: {{ selected_p }} | WO: {{ selected_w }}</p>
+            </div>
+            <div class="flex gap-4 no-print">
+                {% if edit_target_id %}
+                <a href="{{ url_for('billing', project_ref=selected_p, workorder_no=selected_w) }}" 
+                   class="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-bold border border-orange-200 hover:bg-orange-200">
+                    ✕ Stop Editing
+                </a>
+                {% endif %}
+                <button onclick="window.print()" class="bg-white border-2 border-[#D2B48C] accent-text px-4 py-2 rounded-lg font-bold hover:bg-[#F5F5F5]">
+                    🖨️ Print
+                </button>
+                <div class="bg-white px-6 py-3 rounded-xl border-2 border-[#D2B48C] shadow-sm">
+                    <span class="text-gray-400 text-[10px] uppercase block font-bold">{% if edit_target_id %}Updating{% else %}Drafting{% endif %} RA No.</span>
+                    <span class="text-xl font-black accent-text">{{ bill_no }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="no-print">
+            <form method="GET" action="/billing" class="bg-white p-6 rounded-xl border border-[#E8D7C5] shadow-sm mb-8 flex gap-6 items-end">
+                <div class="flex-1">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Project Reference</label>
+                    <select name="project_ref" onchange="this.form.submit()" class="w-full p-2.5 border rounded-lg bg-[#FAF9F6] outline-none">
+                        <option value="">-- Select Project --</option>
+                        {% for p in projects %}
+                        <option value="{{ p.project_id }}" {% if selected_p == p.project_id %}selected{% endif %}>{{ p.project_id }} | {{ p.client_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Work Order Number</label>
+                    <select name="workorder_no" onchange="this.form.submit()" class="w-full p-2.5 border rounded-lg bg-[#FAF9F6] outline-none">
+                        <option value="">-- Select Work Order --</option>
+                        {% for wo in workorders %}
+                        <option value="{{ wo.workorder_no }}" {% if selected_w == wo.workorder_no %}selected{% endif %}>{{ wo.workorder_no }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        {% if bom_items %}
+        <form method="POST" action="/billing">
+            <input type="hidden" name="project_ref" value="{{ selected_p }}">
+            <input type="hidden" name="workorder_no" value="{{ selected_w }}">
+            <input type="hidden" name="bill_no" value="{{ bill_no }}">
+            <input type="hidden" name="edit_target_id" value="{{ edit_target_id or '' }}">
+
+            <div class="bg-white rounded-xl shadow-lg border border-[#E8D7C5] overflow-hidden">
+                <table class="w-full text-sm text-left border-collapse" id="billingTable">
+                    <thead class="bg-[#5D574F] text-white text-[10px] uppercase tracking-wider">
+                        <tr>
+                            <th class="p-3 border-r border-gray-600" rowspan="2">Material Description</th>
+                            <th class="p-3 border-r border-gray-600 text-center" rowspan="2">Tender Qty</th>
+                            <th class="p-3 border-r border-gray-600 text-center" rowspan="2">Unit</th>
+                            <th class="p-3 border-r border-gray-600 text-center" rowspan="2">Rate</th>
+                            <th class="p-2 border-b border-gray-600 text-center" colspan="3">Quantity</th>
+                            <th class="p-2 border-b border-gray-600 text-center" colspan="3">Amount (₹)</th>
+                        </tr>
+                        <tr class="bg-[#6e675e]">
+                            <th class="p-2 border-r border-gray-500 text-center">Prev</th>
+                            <th class="p-2 border-r border-gray-500 text-center bg-blue-700 text-white">Pres</th>
+                            <th class="p-2 border-r border-gray-500 text-center">Upto</th>
+                            <th class="p-2 border-r border-gray-500 text-right">Previous</th>
+                            <th class="p-2 border-r border-gray-500 text-right bg-blue-700 text-white">Present</th>
+                            <th class="p-2 text-right">Uptodate</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#E8D7C5]">
+                        {% for item in bom_items %}
+                        <tr class="item-row hover:bg-gray-50">
+                            <input type="hidden" name="bom_id" value="{{ item._id }}">
+                            <td class="p-3 border-r font-bold text-gray-800">{{ item.material_name }}</td>
+                            
+                            <td class="p-3 text-center border-r font-mono text-gray-600">
+                                {{ item.qty }}
+                            </td>
+
+                            <td class="p-3 text-center border-r text-xs uppercase">{{ item.unit }}</td>
+                            <td class="p-3 text-center border-r font-mono">
+                                <input type="number" class="rate-val w-full text-center bg-transparent outline-none" value="{{ item.tender_rate }}" readonly>
+                            </td>
+                            
+                            <td class="p-2 border-r text-center bg-gray-50">
+                                <input type="number" class="prev-qty w-full text-center bg-transparent" value="{{ item.prev_qty }}" readonly>
+                            </td>
+                            <td class="p-2 border-r text-center bg-blue-50">
+                                <input type="number" step="0.01" name="present_qty" class="pres-qty w-full text-center bg-transparent font-bold text-blue-700" 
+                                       value="{{ item.edit_qty }}" placeholder="0.00">
+                            </td>
+                            <td class="p-2 border-r text-center">
+                                <input type="number" class="upto-qty w-full text-center bg-transparent font-bold" value="0" readonly>
+                            </td>
+
+                            <td class="p-2 border-r text-right pr-4">
+                                <input type="number" class="prev-amt w-full text-right bg-transparent" value="{{ item.prev_amt }}" readonly>
+                            </td>
+                            <td class="p-2 border-r text-right bg-blue-50 pr-4">
+                                <input type="number" class="pres-amt w-full text-right bg-transparent text-blue-800 font-bold" value="0" readonly>
+                            </td>
+                            <td class="p-2 text-right pr-4 font-bold text-gray-700">
+                                <input type="number" class="upto-amt w-full text-right bg-transparent font-bold" value="0" readonly>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-gray-100 font-black text-gray-800">
+                        <tr>
+                            <td colspan="7" class="p-4 text-right uppercase text-xs">Total Bill Value:</td>
+                            <td class="p-4 text-right text-gray-400" id="totalPrev">₹ 0.00</td>
+                            <td class="p-4 text-right text-blue-800" id="totalPres">₹ 0.00</td>
+                            <td class="p-4 text-right bg-gray-200" id="totalUpto">₹ 0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="mt-6 flex justify-end no-print">
+                <button type="submit" class="bg-[#5D574F] text-white px-10 py-3 rounded-lg font-bold shadow-lg hover:bg-black transition-all">
+                    {% if edit_target_id %} UPDATE RA BILL {{ bill_no }} {% else %} SAVE RA BILL {{ bill_no }} {% endif %}
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-12 no-print pb-20">
+            <h3 class="text-xl font-bold accent-text mb-6 border-b-2 border-[#D2B48C] pb-2">History & Actions</h3>
+            <div class="grid gap-4">
+                {% if past_bills %}
+                    {% for bill in past_bills %}
+                    <div class="bg-white border border-[#E8D7C5] rounded-xl flex items-center justify-between p-4 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-[#D2B48C] text-white w-10 h-10 flex items-center justify-center rounded-lg font-bold shadow-inner">
+                                {{ bill.bill_no }}
+                            </div>
+                            <div>
+                                <p class="font-bold accent-text">RA BILL NO: {{ bill.bill_no }}</p>
+                                <p class="text-[10px] text-gray-400 uppercase">
+                                    Items tracked: {{ (bill.bill_items if bill.bill_items is defined else bill['items'])|length }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('billing', project_ref=selected_p, workorder_no=selected_w, edit_bill_id=bill._id) }}" 
+                               class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold border border-blue-100 hover:bg-blue-600 hover:text-white transition">
+                                ✎ Edit
+                            </a>
+
+                            <a href="{{ url_for('billing', project_ref=selected_p, workorder_no=selected_w, edit_bill_id=bill._id, trigger_print='true') }}" 
+                               class="bg-green-50 text-green-600 px-4 py-2 rounded-lg text-xs font-bold border border-green-100 hover:bg-green-600 hover:text-white transition">
+                                🖨️ Print
+                            </a>
+
+                            <a href="{{ url_for('delete_bill', bill_id=bill._id) }}" 
+                               onclick="return confirm('Delete RA No {{ bill.bill_no }}? All following bills will be re-numbered.')"
+                               class="bg-red-50 text-red-500 p-2 rounded-lg border border-red-100 hover:bg-red-500 hover:text-white transition">
+                                🗑️
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center p-10 border-2 border-dashed border-[#E8D7C5] rounded-xl text-gray-400 font-medium">
+                        No billing history available for this work order.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <script>
+        // Core Calculation Engine
+        function updateTotals() {
+            let sumPrev = 0, sumPres = 0, sumUpto = 0;
+            
+            document.querySelectorAll('.item-row').forEach(row => {
+                const rate = parseFloat(row.querySelector('.rate-val').value) || 0;
+                const prevQty = parseFloat(row.querySelector('.prev-qty').value) || 0;
+                const presQty = parseFloat(row.querySelector('.pres-qty').value) || 0;
+                const prevAmt = parseFloat(row.querySelector('.prev-amt').value) || 0;
+
+                const uptoQty = prevQty + presQty;
+                const presAmt = presQty * rate;
+                const uptoAmt = prevAmt + presAmt;
+
+                row.querySelector('.upto-qty').value = uptoQty.toFixed(2);
+                row.querySelector('.pres-amt').value = presAmt.toFixed(2);
+                row.querySelector('.upto-amt').value = uptoAmt.toFixed(2);
+
+                sumPrev += prevAmt;
+                sumPres += presAmt;
+                sumUpto += uptoAmt;
+            });
+
+            document.getElementById('totalPrev').innerText = "₹ " + sumPrev.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('totalPres').innerText = "₹ " + sumPres.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('totalUpto').innerText = "₹ " + sumUpto.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        }
+
+        // Print Automation
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('trigger_print') === 'true') {
+            window.onload = () => {
+                updateTotals();
+                setTimeout(() => {
+                    window.print();
+                    const cleanUrl = window.location.href.split('&trigger_print')[0];
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }, 500);
+            };
+        } else {
+            window.onload = updateTotals;
+        }
+
+        // Listeners
+        document.querySelectorAll('.pres-qty').forEach(input => {
+            input.addEventListener('input', updateTotals);
+        });
+    </script>
+</body>
+</html>

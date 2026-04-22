@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Inventory | RK ERP</title>
+    <style>
+        body { font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; background-color: #FAF9F6; }
+        .sidebar { background-color: #E8D7C5; }
+        .accent-text { color: #5D574F; }
+        .sharp-border { border-radius: 0 !important; box-shadow: none !important; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; }
+            .sharp-border { border: 1px solid black !important; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 sidebar border-r border-[#D2B48C] flex flex-col no-print">
+        <div class="p-6 border-b border-[#D2B48C]">
+            <h1 class="text-xl font-bold accent-text tracking-tight">RK ENTERPRISES</h1>
+            <p class="text-xs text-[#8C8273] uppercase tracking-widest">WaterProofing ERP</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 text-[#5D574F]">
+            <a href="{{ url_for('dashboard') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Dashboard</a>
+            <a href="{{ url_for('project') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Project</a>
+            <a href="{{ url_for('workorder') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Work Order</a>
+            <a href="{{ url_for('bom') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">BOM</a>
+            <a href="{{ url_for('billing') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Billing</a>
+            <a href="{{ url_for('inventory') }}" class="block p-3 rounded bg-white shadow-sm font-semibold accent-text">Store Inventory</a>
+            <a href="{{ url_for('purchase') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Purchase</a>
+            <a href="{{ url_for('dispatch') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Dispatch</a>
+            <a href="{{ url_for('quotation') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Quotation</a>
+        </nav>
+        <div class="p-4 border-t border-[#D2B48C]">
+            <a href="/logout" class="text-sm text-red-700 font-semibold hover:underline">Logout</a>
+        </div>
+        <p class="p-4 border-t border-[#D2B48C]">Design & Developed by Swaraj T.</p>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="flex justify-between items-center mb-8 no-print">
+            <div>
+                <h2 class="text-3xl font-bold accent-text">Material Inventory</h2>
+                <p class="text-sm text-gray-500">Define materials and monitor current stock</p>
+            </div>
+            <button onclick="window.print()" class="bg-white border-2 border-[#D2B48C] accent-text px-6 py-2 font-bold hover:bg-gray-100 transition sharp-border">
+                🖨️ Print Stock Report
+            </button>
+        </div>
+
+        <div class="no-print mb-10">
+            <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 tracking-widest">
+                {% if edit_material %} Edit Material {% else %} Register New Material {% endif %}
+            </h3>
+            <form action="/inventory" method="POST" class="bg-white p-6 border border-[#E8D7C5] sharp-border flex gap-4 items-end">
+                <input type="hidden" name="material_id" value="{{ edit_material._id if edit_material else '' }}">
+                
+                <div class="flex-[2]">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Material Name</label>
+                    <input type="text" name="material_name" value="{{ edit_material.material_name if edit_material else '' }}" required class="w-full p-2 border border-gray-200 sharp-border outline-none focus:border-[#D2B48C]" placeholder="e.g. Dr. Fixit LW+">
+                </div>
+                <div class="flex-[2]">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Short Description</label>
+                    <input type="text" name="description" value="{{ edit_material.description if edit_material else '' }}" class="w-full p-2 border border-gray-200 sharp-border outline-none focus:border-[#D2B48C]" placeholder="Usage or Grade">
+                </div>
+                <div class="flex-1">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Unit</label>
+                    <select name="unit" class="w-full p-2 border border-gray-200 sharp-border outline-none bg-white">
+                        <option value="Nos" {% if edit_material and edit_material.unit == 'Nos' %}selected{% endif %}>Nos</option>
+                        <option value="KG" {% if edit_material and edit_material.unit == 'KG' %}selected{% endif %}>KG</option>
+                        <option value="Ltr" {% if edit_material and edit_material.unit == 'Ltr' %}selected{% endif %}>Ltr</option>
+                        <option value="Bag" {% if edit_material and edit_material.unit == 'Bag' %}selected{% endif %}>Bag</option>
+                        <option value="SqFt" {% if edit_material and edit_material.unit == 'SqFt' %}selected{% endif %}>SqFt</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-[#5D574F] text-white px-8 py-2 font-bold hover:bg-black transition sharp-border uppercase text-xs">
+                        {% if edit_material %} Save Changes {% else %} Add to Master {% endif %}
+                    </button>
+                    {% if edit_material %}
+                    <a href="{{ url_for('inventory') }}" class="bg-gray-200 text-gray-700 px-6 py-2 font-bold hover:bg-gray-300 transition sharp-border uppercase text-xs text-center">
+                        Cancel
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 tracking-widest">Current Stock Status</h3>
+        <div class="bg-white border border-[#E8D7C5] sharp-border overflow-hidden">
+            <table class="w-full text-sm text-left border-collapse">
+                <thead class="bg-[#5D574F] text-white text-[10px] uppercase tracking-wider">
+                    <tr>
+                        <th class="p-4 border-r border-gray-600">Material Name</th>
+                        <th class="p-4 border-r border-gray-600">Description</th>
+                        <th class="p-4 text-center border-r border-gray-600">Unit</th>
+                        <th class="p-4 text-right border-r border-gray-600">In-Stock Quantity</th>
+                        <th class="p-4 text-center no-print">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E8D7C5]">
+                    {% for item in inventory %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-4 border-r font-bold text-gray-800">{{ item.material_name }}</td>
+                        <td class="p-4 border-r text-gray-600 italic">{{ item.description }}</td>
+                        <td class="p-4 border-r text-center text-xs font-bold uppercase">{{ item.unit }}</td>
+                        <td class="p-4 border-r text-right font-mono font-bold {% if item.total_qty > 0 %}text-green-700{% else %}text-red-500{% endif %}">
+                            {{ "%.2f"|format(item.total_qty) }}
+                        </td>
+                        <td class="p-4 text-center no-print space-x-4">
+                            <a href="{{ url_for('inventory', edit_id=item._id) }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase">Edit</a>
+                            <a href="{{ url_for('delete_inventory', mat_id=item._id) }}" 
+                               onclick="return confirm('Delete material and reset its inventory record?')" 
+                               class="text-red-500 hover:text-red-700 font-bold text-xs uppercase">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not inventory %}
+                    <tr><td colspan="5" class="p-10 text-center text-gray-400">No materials defined in inventory master.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

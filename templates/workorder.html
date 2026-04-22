@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Work Order | RK ERP</title>
+    <style>
+        body { font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif; background-color: #FAF9F6; }
+        .sidebar { background-color: #E8D7C5; }
+        .accent-text { color: #5D574F; }
+        .hidden-step { display: none; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #D2B48C; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 sidebar border-r border-[#D2B48C] flex flex-col">
+        <div class="p-6 border-b border-[#D2B48C]">
+            <h1 class="text-xl font-bold accent-text tracking-tight">RK ENTERPRISES</h1>
+            <p class="text-xs text-[#8C8273] uppercase tracking-widest">WaterProofing ERP</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 text-[#5D574F]">
+            <a href="{{ url_for('dashboard') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Dashboard</a>
+            <a href="{{ url_for('project') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition">Project</a>
+            <a href="{{ url_for('workorder') }}" class="block p-3 rounded bg-white shadow-sm font-semibold accent-text">Work Order</a>
+            <a href="{{ url_for('bom') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">BOM</a>
+            <a href="{{ url_for('billing') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Billing</a>
+            <a href="{{ url_for('inventory') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Store Inventory</a>
+            <a href="{{ url_for('purchase') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Purchase</a>
+            <a href="{{ url_for('dispatch') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Dispatch</a>
+            <a href="{{ url_for('quotation') }}" class="block p-3 rounded hover:bg-[#D2B48C] transition text-[#5D574F]">Quotation</a>
+        </nav>
+        <div class="p-4 border-t border-[#D2B48C]">
+            <a href="/logout" class="text-sm text-red-700 font-semibold hover:underline">Logout</a>
+        </div>
+        <p class="p-4 border-t border-[#D2B48C]">Design & Developed by Swaraj T.</p>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <h2 class="text-3xl font-bold accent-text mb-8">Work Order Management</h2>
+
+        <div class="bg-white p-6 rounded-xl border border-[#E8D7C5] shadow-sm mb-8">
+            <form action="/workorder" method="POST" id="woForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="flex flex-col">
+                        <label class="text-xs font-bold text-[#8C8273] mb-1 italic">Step 1: Select Project ID</label>
+                        <select name="project_ref" id="projectSelect" required 
+                            class="p-2 border border-[#E8D7C5] rounded bg-[#FAF9F6] outline-none focus:ring-2 focus:ring-[#D2B48C]">
+                            <option value="" disabled selected>Choose Project...</option>
+                            {% for proj in projects %}
+                            <option value="{{ proj.project_id }}">{{ proj.project_id }} - {{ proj.client_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="step2" class="hidden-step border-t border-[#FAF9F6] pt-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8C8273] mb-1">Work Order No.</label>
+                            <input type="text" name="workorder_no" placeholder="e.g. WO/2026/01" required 
+                                class="p-2 border border-[#E8D7C5] rounded bg-[#FAF9F6] outline-none focus:border-[#D2B48C]">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8C8273] mb-1">Subject</label>
+                            <input type="text" name="subject" placeholder="e.g. Electrical Panel Fabrication" required 
+                                class="p-2 border border-[#E8D7C5] rounded bg-[#FAF9F6] outline-none focus:border-[#D2B48C]">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col mb-4">
+                        <label class="text-xs font-bold text-[#8C8273] mb-1 italic">Step 2: Material / Work Description</label>
+                        <div class="flex gap-2">
+                            <input type="text" name="description" placeholder="Enter work details..." required 
+                                class="flex-1 p-2 border border-[#E8D7C5] rounded bg-[#FAF9F6] outline-none focus:border-[#D2B48C]">
+                            <button type="submit" class="bg-[#5D574F] text-white px-8 py-2 rounded font-bold hover:bg-[#4a453f] transition shadow-md">
+                                Add to List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-[#E8D7C5] overflow-hidden">
+            <table class="w-full text-left border-collapse" id="woTable">
+                <thead class="bg-[#FAF9F6] border-b border-[#E8D7C5]">
+                    <tr>
+                        <th class="p-4 font-semibold text-gray-600">Project ID</th>
+                        <th class="p-4 font-semibold text-gray-600">WO Number</th>
+                        <th class="p-4 font-semibold text-gray-600">Subject</th>
+                        <th class="p-4 font-semibold text-gray-600">Material / Work Description</th>
+                        <th class="p-4 font-semibold text-center text-gray-600">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E8D7C5]">
+                    {% for item in boqs %}
+                    <tr class="wo-row hover:bg-gray-50 transition" data-project="{{ item.project_ref }}" style="display: none;">
+                        <td class="p-4 font-bold text-[#5D574F]">{{ item.project_ref }}</td>
+                        <td class="p-4 font-mono text-sm text-gray-700">{{ item.workorder_no }}</td>
+                        <td class="p-4 text-gray-600 text-sm">{{ item.subject }}</td>
+                        <td class="p-4 text-gray-700">{{ item.description }}</td>
+                        <td class="p-4 text-center">
+                            <a href="/delete_boq/{{ item._id }}" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider">
+                                Remove
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="emptyRow">
+                        <td colspan="5" class="p-8 text-center text-gray-400 italic">Please select a project to see associated Work Orders.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const projectSelect = document.getElementById('projectSelect');
+        const step2Container = document.getElementById('step2');
+        const woRows = document.querySelectorAll('.wo-row');
+        const emptyRow = document.getElementById('emptyRow');
+
+        // Core Filtering Logic
+        projectSelect.addEventListener('change', function() {
+            const selectedPID = this.value;
+            let found = false;
+
+            // Show/Hide Step 2 Form
+            step2Container.style.display = (selectedPID !== "") ? 'block' : 'none';
+
+            // Filter Table Rows
+            woRows.forEach(row => {
+                if (row.getAttribute('data-project') === selectedPID) {
+                    row.style.display = 'table-row';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Toggle Empty State Message
+            if (found) {
+                emptyRow.style.display = 'none';
+            } else {
+                emptyRow.style.display = 'table-row';
+                if (selectedPID !== "") {
+                    emptyRow.querySelector('td').innerText = "No work orders found for project: " + selectedPID;
+                } else {
+                    emptyRow.querySelector('td').innerText = "Please select a project to see associated Work Orders.";
+                }
+            }
+        });
+
+        // Memory Feature: Auto-select project after page reload (from Flask POST)
+        window.addEventListener('DOMContentLoaded', () => {
+            const lastP = "{{ last_p }}";
+
+            if (lastP && lastP !== "None" && lastP !== "") {
+                projectSelect.value = lastP;
+                // Manually trigger the 'change' event to run the filtering logic
+                projectSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>

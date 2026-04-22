@@ -1,0 +1,4 @@
+/* Custom Scrollbars for ERP */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0b0e14; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
