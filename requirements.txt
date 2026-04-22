@@ -3,4 +3,5 @@ pymongo
 certifi
 gunicorn
 dnspython
+gunicorn
 werkzeug
